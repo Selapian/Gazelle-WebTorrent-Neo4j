@@ -7,7 +7,6 @@
 // If it ain't lookin' for the trigger, the ship won't move!
 $(document).on("TEMPLAR", function() {
     let page = TEMPLAR.pageREC();
-    console.log("Smee! I see the signal! Rendering:", page);
     TEMPLAR.render(page);
 });
 
@@ -44,7 +43,6 @@ var TEMPLAR = {
             window.addEventListener('popstate', (event) => {
                 // We render directly from the URL truth without re-triggering 'route'
                 const target = that.pageREC();
-                console.log("DEBUG: Popstate detected. Navigating to:", target);
                 $(document).trigger("TEMPLAR");
                 that.render(target); 
             });
@@ -84,7 +82,6 @@ var TEMPLAR = {
             that._visible_page(page);
             that.helm(page);
         }).fail(function() {
-            console.error("CAP'N! The crew can't find: " + fileTarget);
         });
     }
     ,
@@ -105,17 +102,11 @@ var TEMPLAR = {
         // GUARD: Only bind the lookout once!
         if (this._isBound) return; 
 
-        $(document).on("click", ".TEMPLAR", function(e) {
+        $(document).on("click", "a.TEMPLAR", function(e) {
             const $target = $(this);
             const href = $target.attr("href");
 
-            // SMEE: Here be the mark! 
-            console.log("DEBUG: DOM caught a click!", {
-                href: href,
-                classes: $target.attr("class"),
-                targetNode: e.target.tagName
-            });
-
+            
             // GHOST FILTER: Don't route if there's no map!
             if (!href || href === "#" || href.includes("undefined")) return;
 
@@ -182,7 +173,7 @@ var TEMPLAR = {
        this new Truth without forcing a total Dasein-Reset! */
     paramSet: function(param, value) {
         // 1. We disclose the current state of the Clearing
-        this.paramRemove(param);
+        this.paramRem(param);
         const parts = window.location.hash.split("?");
         const pathPart = parts[0];       // e.g., "#torrents"
         const searchPart = parts[1] || ""; // e.g., "id=123"

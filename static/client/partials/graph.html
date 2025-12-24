@@ -1,0 +1,26 @@
+<!--<script src="//unpkg.com/3d-force-graph-vr"></script>!-->
+<a class="graph_toggle" id="graph_plus" href="#">+</a><a class="graph_toggle" id="graph_minus" href="#">-</a><a class="graph_mobile" href="#"><span id="graph_heading">Graph Power!</span></a>
+<div class="graph_search">
+	<br>
+	<span id="graph_heading">Graph Search!</span>
+	<br><br><br>
+	<select id="graph_type"><option value="all">All Types</option></select><br>
+	<select id="graph_media"><option value="all">All Media</option></select><br>
+	<select id="graph_format"><option value="all">All Formats</option></select><br>
+	<input id="graph_title" placeholder = "Title">
+	<br>
+	<input id="graph_author" placeholder="Author">
+	<br>
+	<input id="graph_classes" placeholder="Classes (comma-separated)"><ul id="graph_classes_as" class="autosuggestBox"></ul>
+	<br>
+	<label for="graph_class_all" class="graph_class">ALL</label>
+	<input type="radio" class="graph_class" name="graph_class_toggle" id="graph_class_all">
+	<label for="graph_class_any" class="graph_class">ANY</label>
+	<input type="radio" class="graph_class" name="graph_class_toggle" id="graph_class_any">
+	<br><br>
+	<input id="graph_publisher" placeholder="Publisher or Journal"><br>
+  <button id="graph_submit">Graph</button><br><button id="download_graph_page" class="download_graph">Download Graph</button>
+  </button>
+</div>
+<div id="graph">
+</div>

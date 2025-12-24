@@ -1,0 +1,94 @@
+<div class="titleBreak">
+  <h2 id="torrentsTitle"><a class="ANCHOR torrents" href="#torrents"><span>Titles</span></a></h2>
+</div>
+
+<div class="adv_search">
+	<span id="adv_heading">Advanced</span>	
+	<div class="adv_show"></a>		
+		<select class="adv_type "id="adv_type"><option value="all">Ebook Genus</option></select><br>
+		<select class="adv_media" id="adv_media"><option value="all">Media</option></select><br>
+		<select class="adv_format" id="adv_format"><option value="all">Format</option></select><br>
+		<input id="adv_title" placeholder = "Title">
+		<br>
+		<input id="adv_author" placeholder="Author">
+		<br>
+		<input id="adv_classes" placeholder="Classes (comma-separated)">
+		<br>
+		<label for="adv_class_all" class="adv_class">Intersect (ALL)</label>
+		<input type="radio" class="adv_class" name="adv_class_toggle" id="adv_class_all">
+		<label for="adv_class_any" class="adv_class">Include (ANY)</label>
+		<input type="radio" class="adv_class" name="adv_class_toggle" id="adv_class_any">
+		<br><br>
+		<input id="adv_publisher" placeholder="Publisher or Journal"><br><br>
+		<button id="adv_submit" class="graph_button">Graph Search</button>
+	</div>
+</div>
+
+<script>
+	document.querySelector('.adv_search').addEventListener('keydown', function(event) {
+	    // Check if the pressed key is 'Enter'
+	    if (event.key === 'Enter') {
+	        // Identify if the active element is an input or select within this div
+	        const isField = event.target.matches('input, select, textarea');
+	        
+	        if (isField) {
+	            // Prevent default behavior (like submitting a hidden form)
+	            event.preventDefault();
+	            
+	            const submitBtn = document.querySelector('#adv_submit');
+	            if (submitBtn) {
+	                submitBtn.click();
+	            }
+	        }
+	    }
+	});
+	$(document).off('click', '.apa-trigger').on('click', '.apa-trigger', function(e) {
+	    // 1. If the user clicked the publisher link, let the link handle it and STOP
+	    if ($(e.target).hasClass('publisher')) {
+	        e.stopPropagation(); 
+	        return; 
+	    }
+
+	    // 2. Otherwise, handle the copy logic for the full text
+	    const $container = $(this);
+	    const $textElement = $container.find('.apa-text');
+	    const $status = $container.find('.copy-status');
+	    
+	    // Grabs the clean text of the entire citation (including publisher name)
+	    const textToCopy = $textElement.text().replace(/\s+/g, ' ').trim();
+
+	    navigator.clipboard.writeText(textToCopy).then(() => {
+	        $status.html(' &#10003;').addClass('show');
+	        
+	        setTimeout(() => {
+	            $status.removeClass('show');
+	            setTimeout(() => $status.empty(), 200);
+	        }, 1200);
+	    });
+	});
+
+	// Update tooltips dynamically to avoid showing "Click to copy" over the publisher
+	$(document).on('mouseenter', '.apa-former', function() {
+	    $(this).closest('.apa-trigger').attr('title', 'Click to copy citation');
+	}).on('mouseleave', '.apa-former', function() {
+	    $(this).closest('.apa-trigger').removeAttr('title');
+	});
+</script>
+
+<div class="graph_search"></div>
+
+<table width="100%" max-width="100%" id="torrents" class="torrents">
+	<thead>
+		<tr>
+			<th>Source / Date / Author</th> <!--hidden column header !-->
+			<th class="table_edition">APA Citation</th> <!--edition !-->
+			
+			<th>Revs</th>
+      		<th class="table_date">Date</th>
+			<th>Time</th>
+			<th class="none torrents"></th> <!-- hidden responsive + !-->
+		</tr>
+	</thead>
+	<tbody>
+	</tbody>
+</table>

@@ -1,0 +1,1 @@
+var mermaid = false;

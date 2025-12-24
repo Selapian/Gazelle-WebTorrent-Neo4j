@@ -66,7 +66,7 @@ app.post("/mermaid/:uuid", check("publisher").trim().escape(), check("uuid").tri
         console.log("INDEX : " + index + "LEN : " + data.records.length);
         if(data.records[0]){
           console.log("SRC", data.records[index]._fields[0].properties.uuid)
-          return res.json({source : data.records[index]._fields[0].properties.uuid, mermaid : mermaid })
+          return res.json({uuid : data.records[index]._fields[0].properties.uuid, mermaid : mermaid })
         }
         else{
           return res.json({errors : [{msg : ""}]})
@@ -261,6 +261,7 @@ app.post("/node/:label", [
         await session.close();
     }
 });
+
 app.post("/set/:ward", function(req, res) {
     const session = driver.session();
     const ward = req.params.ward;
@@ -327,7 +328,7 @@ app.post("/set/:ward", function(req, res) {
     // We calculate 'snatches' in the WITH so we can sort by it if requested.
     const dataQuery = 
         `MATCH (${nodeVar}:${nodeLabel}) WHERE ${nodeVar}.name <> '' ` +
-        `OPTIONAL MATCH (${nodeVar})${relationshipLabel}(${connectedNodeLabel}) ` +
+        `MATCH (${nodeVar})${relationshipLabel}(${connectedNodeLabel}) ` +
         `WITH ${nodeVar}, ` +
         `     count(DISTINCT ${connectedNodeLabel.charAt(0)}) AS ${countAlias}, ` +
         `     coalesce(${nodeVar}.snatches, 0) AS snatches ` +
@@ -448,9 +449,7 @@ app.post("/torrents/adv_search", check("class_all").not().isEmpty().trim().escap
     
     console.log(req.body.class_all)
     if(req.body.class_all === "true"){
-      query += "MATCH (c:Class)-[:TAGS]->(s) " +
-      "WITH s " +
-      "MATCH (c1:Class) WHERE c1.name IN $classes "+ 
+      query += "MATCH (c1:Class) WHERE c1.name IN $classes "+ 
       "WITH s, collect(c1) as classes " +
       "WITH s, head(classes) as head, tail(classes) as classes " +
       "MATCH (head)-[:TAGS]->(s) " +
@@ -458,9 +457,7 @@ app.post("/torrents/adv_search", check("class_all").not().isEmpty().trim().escap
       
     }
     else{
-      query += "MATCH (c:Class)-[:TAGS]->(s) " + 
-      "WITH s " +
-      "MATCH (c1:Class)-[:TAGS]->(s) WHERE c1.name IN $classes "
+      query += "MATCH (c1:Class)-[:TAGS]->(s) WHERE c1.name IN $classes "
     }
 
     query += "WITH count(DISTINCT s) AS count "
@@ -533,30 +530,25 @@ app.post("/torrents/adv_search", check("class_all").not().isEmpty().trim().escap
     }
     console.log(req.body.class_all)
     if(req.body.class_all === "true"){
-      query += "MATCH (c:Class)-[:TAGS]->(s) " +
-      "WITH s,a,e,t,c,p, count " +
+      query += 
       "MATCH (c1:Class) WHERE c1.name IN $classes "+ 
-      "WITH s,a,e,t,c,p, collect(c1) as classes, count " +
-      "WITH s,a,e,t,c,p, head(classes) as head, tail(classes) as classes, count " +
+      "WITH s,a,e,t,p, collect(c1) as classes, count " +
+      "WITH s,a,e,t,p, head(classes) as head, tail(classes) as classes, count " +
       "MATCH (head)-[:TAGS]->(s) " +
       "WHERE ALL(c1 in classes WHERE (c1)-[:TAGS]->(s)) "
     }
     else{
       query += "MATCH (c:Class)-[:TAGS]->(s) " + 
-      "WITH s,a,c,p,e,t, count " +
+      "WITH s,a,p,e,t, count " +
       "MATCH (c1:Class)-[:TAGS]->(s) WHERE c1.name IN $classes "
     }
 
-    query += "WITH s, collect(DISTINCT a) AS authors, collect(DISTINCT{edition : e, publisher: p, torrent: t} ) AS edition_torrents, c, count "
 
   }
-  else{
-    query += "OPTIONAL MATCH (c:Class)-[:TAGS]->(s) " 
 
-    query += "WITH s, collect(DISTINCT a) AS authors, collect(DISTINCT{edition : e, publisher :p, torrent: t} ) AS edition_torrents, c, count "
+query += "MATCH (c:Class)-[:TAGS]->(s) " +
+    "WITH s, collect(DISTINCT a) AS authors, collect(DISTINCT{edition : e, publisher :p, torrent: t} ) AS edition_torrents, collect(DISTINCT c) as classes, count "
 
-  }
-  query += "WITH s, authors, edition_torrents, collect(DISTINCT c) AS classes, count "
   
 
   
@@ -611,7 +603,7 @@ app.post("/torrents/adv_search", check("class_all").not().isEmpty().trim().escap
   }
   console.log(query);
   var params = {skip : req.body.start, limit : req.body.length, title : he.encode(remove_stopwords(he.decode(he.decode(req.body.title)))), author : he.encode(he.decode(he.decode(req.body.author))), 
-  classes: classes, publisher : he.encode(remove_stopwords(he.decode(he.decode(req.body.publisher)))), type : he.encode(he.decode(he.decode(req.body.type))), media: req.body.media, format : req.body.format}
+  classes: classes, publisher : he.encode(he.decode(he.decode(req.body.publisher))), type : he.encode(he.decode(he.decode(req.body.type))), media: req.body.media, format : req.body.format}
   console.log(params.classes)
   console.log(req.body.type)
   console.log(he.encode(he.decode(he.decode(he.decode(req.body.type)))))
@@ -711,7 +703,7 @@ app.post("/graph_search", check("class_all").trim().escape().isLength({max:100})
     
     if(req.body.publisher){
       query += "CALL db.index.fulltext.queryNodes('publisherName', $publisher) YIELD node " +
-        "OPTIONAL MATCH (p:Publisher)<-[:PUBLISHED_BY]-(e:Edition)<-[:PUB_AS]-(s) WHERE p.uuid = node.uuid "
+        "MATCH (p:Publisher)<-[:PUBLISHED_BY]-(e:Edition)<-[:PUB_AS]-(s) WHERE p.uuid = node.uuid "
       }
     else{
       query += "OPTIONAL MATCH (p:Publisher)<-[:PUBLISHED_BY]-(e:Edition)<-[:PUB_AS]-(s) " 
@@ -726,7 +718,7 @@ app.post("/graph_search", check("class_all").trim().escape().isLength({max:100})
                "MATCH (s)<-[:TAGS]-(c:Class) " +
                "MATCH (c)-[:TAGS]->(s2:Source) " + 
                "RETURN s2 " +
-               "ORDER BY rand() DESC LIMIT 7 " +
+               "ORDER BY rand() DESC LIMIT 8 " +
            "} " + 
 
            // --- 3. MERGE SOURCES ---
@@ -744,12 +736,12 @@ app.post("/graph_search", check("class_all").trim().escape().isLength({max:100})
            // Return the distinct columns.
            // Columns: [0]=source, [1]=a (Author), [2]=c (Class), [3]=e (Edition)
            "RETURN s2, a, c, p " +
-           "ORDER BY rand() LIMIT 137 "
+           "ORDER BY rand() LIMIT 100 "
 
       console.log(query)
     
     var params = {skip : req.body.start, limit : req.body.length, title : he.encode(remove_stopwords(he.decode(he.decode(req.body.title)))), author : he.encode(he.decode(he.decode(req.body.author))), 
-  classes: classes, publisher : he.encode(remove_stopwords(he.decode(he.decode(req.body.publisher)))), type : he.encode(he.decode(he.decode(req.body.type))), media: req.body.media, format : req.body.format}
+  classes: classes, publisher : he.encode(he.decode(he.decode(req.body.publisher))), type : he.encode(he.decode(he.decode(req.body.type))), media: req.body.media, format : req.body.format}
   
   session.run(query , params).then(data => {
       session.close()      
@@ -1473,7 +1465,7 @@ app.post("/snatched/:id", check("id").trim().escape().not().isEmpty().isInt().is
 
     console.log(req.params.infoHash);
 
-    var query = "MATCH (t:Torrent{total_size_bytes:$id}) " + 
+    var query = "MATCH (t:Torrent{size:$id}) " + 
                 "SET t.snatches = toFloat(t.snatches + 1) " +
                 "WITH t " + 
                 "MATCH (p:Publisher)<-[:PUBLISHED_BY]-(e:Edition)-[:DIST_AS]->(t) " +
